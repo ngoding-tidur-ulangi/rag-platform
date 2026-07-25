@@ -1,0 +1,14 @@
+[project]
+name = "database-migrations"
+version = "0.1.0"
+description = "Database migrations for RAG Platform"
+dependencies = [
+    "sqlalchemy>=2.0.30",
+    "alembic>=1.13.1",
+    "psycopg2-binary>=2.9.9",
+    "python-dotenv>=1.0.1",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
