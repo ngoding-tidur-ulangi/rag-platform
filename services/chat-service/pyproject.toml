@@ -1,0 +1,22 @@
+[project]
+name = "chat-service"
+version = "0.1.0"
+description = "Chat Service for RAG Platform"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn>=0.30.0",
+    "sqlalchemy>=2.0.30",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "psycopg2-binary>=2.9.9",
+    "asyncpg>=0.29.0",
+    "python-dotenv>=1.0.1",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
