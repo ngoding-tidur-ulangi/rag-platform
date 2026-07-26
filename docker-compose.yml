@@ -29,6 +29,7 @@ services:
     volumes:
       - ./services/chat-service:/app/services/chat-service
       - ./shared/database:/app/shared/database
+      - ./shared/common:/app/shared/common
     depends_on:
       - database
 
