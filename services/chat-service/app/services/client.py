@@ -1,9 +1,12 @@
 import uuid
 import json
+import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as redis
 from app.repositories.client import ClientRepository
 from shared.database.models.client import Client
+
+logger = logging.getLogger(__name__)
 
 class ClientService:
     def __init__(self, session: AsyncSession, redis_client: redis.Redis = None):
@@ -17,11 +20,15 @@ class ClientService:
         if self.redis:
             cached_client = await self.redis.get(cache_key)
             if cached_client:
+                logger.info(f"Cache hit for client: {client_id}")
                 data = json.loads(cached_client)
                 return Client(id=uuid.UUID(data["id"]))
+            
+            logger.info(f"Cache miss for client: {client_id}")
 
         client = await self.repository.get_by_id(client_id)
         if not client:
+            logger.info(f"Creating new client: {client_id}")
             client = Client(id=client_id)
             client = await self.repository.create(client)
             await self.session.commit()

@@ -1,9 +1,12 @@
 import uuid
+import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as redis
 from app.repositories.message import MessageRepository
 from app.repositories.conversation import ConversationRepository
 from shared.database.models.message import Message, MessageRole
+
+logger = logging.getLogger(__name__)
 
 class MessageService:
     def __init__(self, session: AsyncSession, redis_client: redis.Redis = None):
@@ -13,6 +16,7 @@ class MessageService:
         self.redis = redis_client
 
     async def create_message(self, conversation_id: uuid.UUID, content: str, role: str = "USER") -> Message:
+        logger.info(f"Creating message for conversation: {conversation_id}, role: {role}")
         message = Message(
             conversation_id=conversation_id,
             content=content,
@@ -30,6 +34,7 @@ class MessageService:
         
         # Invalidate cache
         if self.redis:
+            logger.info(f"Invalidating caches for conversation: {conversation_id}")
             await self.redis.delete(f"conversation:{conversation_id}")
             if conversation:
                 await self.redis.delete(f"client:{conversation.client_id}:conversations")

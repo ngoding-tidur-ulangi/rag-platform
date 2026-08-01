@@ -1,5 +1,6 @@
 import uuid
 import json
+import logging
 from datetime import datetime
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +12,8 @@ from app.schemas.message import MessageResponse
 from shared.database.models.conversation import Conversation
 from shared.common.exceptions import NotFoundException
 
+logger = logging.getLogger(__name__)
+
 class ConversationService:
     def __init__(self, session: AsyncSession, redis_client: redis.Redis = None):
         self.session = session
@@ -20,10 +23,12 @@ class ConversationService:
 
     async def _invalidate_client_cache(self, client_id: uuid.UUID):
         if self.redis:
+            logger.info(f"Invalidating conversation list cache for client: {client_id}")
             await self.redis.delete(f"client:{client_id}:conversations")
 
     async def _invalidate_conversation_cache(self, conversation_id: uuid.UUID):
         if self.redis:
+            logger.info(f"Invalidating conversation detail cache: {conversation_id}")
             await self.redis.delete(f"conversation:{conversation_id}")
 
     async def get_conversation_list(self, client_id: uuid.UUID) -> List[ConversationResponse]:
@@ -31,8 +36,11 @@ class ConversationService:
         if self.redis:
             cached = await self.redis.get(cache_key)
             if cached:
+                logger.info(f"Cache hit for conversation list: client {client_id}")
                 data = json.loads(cached)
                 return [ConversationResponse.model_validate(c) for c in data]
+
+            logger.info(f"Cache miss for conversation list: client {client_id}")
 
         conversations = await self.repository.get_by_client_id(client_id)
         res = [ConversationResponse.model_validate(c) for c in conversations]
@@ -50,7 +58,10 @@ class ConversationService:
         if self.redis:
             cached = await self.redis.get(cache_key)
             if cached:
+                logger.info(f"Cache hit for conversation detail: {conversation_id}")
                 return json.loads(cached)
+
+            logger.info(f"Cache miss for conversation detail: {conversation_id}")
 
         conversation = await self.repository.get_by_id(conversation_id)
         if not conversation or conversation.client_id != client_id:
@@ -75,6 +86,7 @@ class ConversationService:
         return conversation
 
     async def create_conversation(self, client_id: uuid.UUID) -> ConversationResponse:
+        logger.info(f"Creating new conversation for client: {client_id}")
         random_title = f"Conversation-{uuid.uuid4().hex[:8]}"
         conversation = Conversation(
             client_id=client_id,

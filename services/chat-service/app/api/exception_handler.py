@@ -1,12 +1,16 @@
+import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from shared.common.exceptions import ApplicationException
 from shared.common.schemas import DefaultResponse
 
+logger = logging.getLogger(__name__)
+
 def init_exception_handlers(app: FastAPI):
     @app.exception_handler(ApplicationException)
     async def application_exception_handler(request: Request, exc: ApplicationException):
+        logger.warning(f"Application error: {exc.message} (code: {exc.code})")
         return JSONResponse(
             status_code=exc.code,
             content=DefaultResponse.error(
@@ -17,6 +21,7 @@ def init_exception_handlers(app: FastAPI):
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        logger.warning(f"Validation error: {exc.errors()}")
         return JSONResponse(
             status_code=400,
             content=DefaultResponse.error(
@@ -29,6 +34,7 @@ def init_exception_handlers(app: FastAPI):
     @app.exception_handler(ValueError)
     @app.exception_handler(TypeError)
     async def common_exception_handler(request: Request, exc: Exception):
+        logger.warning(f"Common error: {str(exc)}")
         return JSONResponse(
             status_code=400,
             content=DefaultResponse.error(
@@ -39,6 +45,7 @@ def init_exception_handlers(app: FastAPI):
 
     @app.exception_handler(Exception)
     async def general_exception_handler(request: Request, exc: Exception):
+        logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
         return JSONResponse(
             status_code=500,
             content=DefaultResponse.error(
