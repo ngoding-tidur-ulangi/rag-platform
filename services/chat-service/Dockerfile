@@ -9,8 +9,10 @@ RUN apt-get update && apt-get install -y \
 
 COPY services/chat-service/pyproject.toml services/chat-service/pyproject.toml
 COPY shared/database/pyproject.toml shared/database/pyproject.toml
+COPY shared/common/pyproject.toml shared/common/pyproject.toml
 
 RUN pip install --no-cache-dir ./shared/database || true
+RUN pip install --no-cache-dir ./shared/common || true
 
 RUN pip install --no-cache-dir ./services/chat-service
 
@@ -26,6 +28,7 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY shared/database /app/shared/database
+COPY shared/common /app/shared/common
 COPY services/chat-service /app/services/chat-service
 
 WORKDIR /app/services/chat-service

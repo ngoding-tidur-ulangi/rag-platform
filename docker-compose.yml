@@ -6,8 +6,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql
-    ports:
-      - "5433:5432"
   database-migration:
     build: 
       context: ./shared/database
@@ -24,13 +22,22 @@ services:
       dockerfile: services/chat-service/Dockerfile
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
     ports:
       - "8000:8000"
     volumes:
       - ./services/chat-service:/app/services/chat-service
       - ./shared/database:/app/shared/database
+      - ./shared/common:/app/shared/common
     depends_on:
       - database
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
 
 volumes:
   postgres_data:
+  redis_data:
