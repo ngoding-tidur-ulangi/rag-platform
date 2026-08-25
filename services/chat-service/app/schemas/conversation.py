@@ -12,10 +12,7 @@ class ConversationResponse(BaseModel):
     last_message_at: datetime
     created_at: datetime
     updated_at: datetime
-
-class ConversationCreate(BaseModel):
-    pass
-
+    
 class ConversationUpdateTitle(BaseModel):
     title: str
 

@@ -10,7 +10,7 @@ from app.repositories.message import MessageRepository
 from app.schemas.conversation import ConversationResponse
 from app.schemas.message import MessageResponse
 from shared.database.models.conversation import Conversation
-from shared.common.exceptions import NotFoundException
+from shared.common.exceptions import ApplicationException
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class ConversationService:
 
         conversation = await self.repository.get_by_id(conversation_id)
         if not conversation or conversation.client_id != client_id:
-            raise NotFoundException(f"Conversation with id {conversation_id} not found")
+            raise ApplicationException(f"Conversation with id {conversation_id} not found")
         
         messages = await self.message_repository.get_by_conversation_id(conversation_id)
         
@@ -82,7 +82,7 @@ class ConversationService:
     async def get_conversation(self, conversation_id: uuid.UUID, client_id: uuid.UUID) -> Conversation:
         conversation = await self.repository.get_by_id(conversation_id)
         if not conversation or conversation.client_id != client_id:
-            raise NotFoundException(f"Conversation with id {conversation_id} not found")
+            raise ApplicationException(f"Conversation with id {conversation_id} not found")
         return conversation
 
     async def create_conversation(self, client_id: uuid.UUID) -> ConversationResponse:
@@ -122,7 +122,7 @@ class ConversationService:
     async def update_last_message_at(self, conversation_id: uuid.UUID, last_message_at: datetime) -> ConversationResponse:
         conversation = await self.repository.get_by_id(conversation_id)
         if not conversation:
-            raise NotFoundException(f"Conversation with id {conversation_id} not found")
+            raise ApplicationException(f"Conversation with id {conversation_id} not found")
         
         conversation.last_message_at = last_message_at
         updated = await self.repository.update(conversation)

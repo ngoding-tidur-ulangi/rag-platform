@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import ForeignKey, func, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from models.base import Base
+from shared.database.models.base import Base
 
 class MessageRole(str, enum.Enum):
     SYSTEM = "SYSTEM"

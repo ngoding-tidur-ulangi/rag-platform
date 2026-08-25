@@ -5,8 +5,7 @@ import redis.asyncio as redis
 from app.api.deps import get_db, get_current_client, get_redis
 from app.services.conversation import ConversationService
 from app.schemas.conversation import (
-    ConversationResponse, 
-    ConversationCreate, 
+    ConversationResponse,
     ConversationUpdateTitle
 )
 from shared.database.models.client import Client
