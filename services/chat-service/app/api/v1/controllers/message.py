@@ -11,7 +11,7 @@ from shared.common.schemas import DefaultResponse
 
 router = APIRouter()
 
-@router.post("conversations/{conversation_id}/messages", response_model=DefaultResponse[MessageResponse])
+@router.post("/conversations/{conversation_id}/messages", response_model=DefaultResponse[MessageResponse])
 async def create_message(
     conversation_id: uuid.UUID,
     data: MessageCreate,
@@ -25,4 +25,4 @@ async def create_message(
     msg_service = MessageService(db, redis_client)
     res = await msg_service.create_message(conversation_id, data.content)
     
-    return DefaultResponse(data=MessageResponse.model_validate(res))
+    return DefaultResponse.success(data=MessageResponse.model_validate(res))
