@@ -7,10 +7,4 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/chat_db"
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    model_config = {
-        "case_sensitive": True,
-        "env_file": ".env",
-        "extra": "ignore"
-    }
-
 settings = Settings()
