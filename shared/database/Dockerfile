@@ -2,17 +2,15 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Copy the specific pyproject.toml
+COPY shared/database/pyproject.toml ./shared/database/pyproject.toml
+RUN pip install --no-cache-dir ./shared/database
 
-COPY pyproject.toml .
+# Copy all shared code
+COPY shared/ ./shared/
 
-RUN pip install --no-cache-dir .
-
-COPY . .
+# Set the working directory to where alembic.ini is
+WORKDIR /app/shared/database
 
 ENV PYTHONPATH=/app
-
 CMD ["alembic", "current"]
