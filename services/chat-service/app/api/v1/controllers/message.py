@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as redis
 from app.api.deps import get_db, get_current_client, get_redis
@@ -11,7 +12,7 @@ from shared.common.schemas import DefaultResponse
 
 router = APIRouter()
 
-@router.post("/conversations/{conversation_id}/messages", response_model=DefaultResponse[MessageResponse])
+@router.post("/conversations/{conversation_id}/messages")
 async def create_message(
     conversation_id: uuid.UUID,
     data: MessageCreate,
@@ -23,6 +24,8 @@ async def create_message(
     await conv_service.get_conversation(conversation_id, current_client.id)
     
     msg_service = MessageService(db, redis_client)
-    res = await msg_service.create_message(conversation_id, data.content)
     
-    return DefaultResponse.success(data=MessageResponse.model_validate(res))
+    return StreamingResponse(
+        msg_service.stream_chat_response(conversation_id, data.content),
+        media_type="text/event-stream"
+    )
