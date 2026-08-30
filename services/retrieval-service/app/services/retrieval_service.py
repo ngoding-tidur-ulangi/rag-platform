@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 from app.prompts.loader import ANSWER_GENERATION_PROMPT, QUESTION_ROUTER_PROMPT
 
 
+from shared.database.models.message import Message, MessageRole
+from shared.database.models.knowledge import Knowledge
+
 class RetrievalService:
     def __init__(self, session: AsyncSession, llm: LLMService):
         self.session = session
@@ -88,9 +91,30 @@ class RetrievalService:
         full_query = f"HISTORY\n{history_str}\nCONTEXT\n{('\n'.join(context_texts))}\nUSER: {question}"
         
         logger.info("Starting final response stream...")
+        full_answer = ""
         async for chunk in self.llm.llm_stream(full_query, ANSWER_GENERATION_PROMPT):
+            full_answer += chunk
             yield AskStreamResponse(answer=chunk)
+        
         logger.info(f"Finished processing ask for conversation {conversation_id}")
+
+        # Save assistant message and knowledge context
+        if full_answer:
+            assistant_msg = Message(
+                conversation_id=conversation_id,
+                content=full_answer,
+                role=MessageRole.SYSTEM
+            )
+            created_msg = await self.message_repository.create(assistant_msg)
+            
+            knowledge = Knowledge(
+                message_id=created_msg.id,
+                function_name=function_name or "search_quran",
+                context=context_items
+            )
+            await self.knowledge_repository.create(knowledge)
+            await self.session.commit()
+            logger.info(f"Saved assistant message and knowledge for message {created_msg.id}")
 
     async def _get_verse(self, surah_number: int, verse_number: int) -> VerseSchema | None:
         verse = await self.quran_repository.get_verse(surah_number, verse_number)
