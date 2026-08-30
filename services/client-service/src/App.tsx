@@ -9,6 +9,7 @@ import { chatService, Conversation } from "./services/chat"
 
 function App() {
   const [isLoading, setIsLoading] = useState(false)
+  const [streamingStatus, setStreamingStatus] = useState<string | null>(null)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [history, setHistory] = useState<{ messager: string, message: string, resources: any[] }[]>([])
@@ -80,7 +81,11 @@ function App() {
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6))
+              if (data.status) {
+                setStreamingStatus(data.status)
+              }
               if (data.answer) {
+                setStreamingStatus(null)
                 agentMsg.message += data.answer
                 setHistory(prev => [...prev.slice(0, -1), { ...agentMsg }])
               }
@@ -90,6 +95,7 @@ function App() {
       }
     } catch (e) {}
     setIsLoading(false); 
+    setStreamingStatus(null);
     loadConversations()
   }
 
@@ -110,6 +116,12 @@ function App() {
               </div>
             )}
             {history.map((item, index) => <ChatMessage key={index} item={item} />)}
+            {streamingStatus && (
+              <div className="flex items-center gap-2 text-sm text-neutral-400 italic animate-pulse ml-4">
+                <LoaderCircle className="animate-spin" size={14} />
+                {streamingStatus}...
+              </div>
+            )}
           </div>
         </ScrollArea>
         <div className={clsx("max-w-3xl w-[90%] absolute bottom-8 transition-all", history.length === 0 && "top-1/2 -translate-y-1/2")}>
