@@ -66,3 +66,7 @@ class MessageService:
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
                         yield f"{line}\n\n"
+
+        if self.redis:
+            logger.info(f"Invalidating caches for conversation: {conversation_id}")
+            await self.redis.delete(f"conversation:{conversation_id}")
