@@ -1,5 +1,13 @@
 const API_BASE_URL = import.meta.env.VITE_CHAT_SERVICE_URL || 'http://localhost:8000/api/v1';
-const CLIENT_ID = '00000000-0000-0000-0000-000000000000'; // Default for now, should be managed via auth
+
+const getClientId = (): string => {
+  let id = localStorage.getItem('client-id');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('client-id', id);
+  }
+  return id;
+};
 
 export interface Conversation {
   id: string;
@@ -25,7 +33,7 @@ export interface ConversationDetail {
 export const chatService = {
   async getConversations(): Promise<Conversation[]> {
     const response = await fetch(`${API_BASE_URL}/conversation`, {
-      headers: { 'X-Client-ID': CLIENT_ID },
+      headers: { 'X-Client-ID': getClientId() },
     });
     const result = await response.json();
     return result.data;
@@ -34,7 +42,7 @@ export const chatService = {
   async createConversation(): Promise<Conversation> {
     const response = await fetch(`${API_BASE_URL}/conversation`, {
       method: 'POST',
-      headers: { 'X-Client-ID': CLIENT_ID },
+      headers: { 'X-Client-ID': getClientId() },
     });
     const result = await response.json();
     return result.data;
@@ -42,7 +50,7 @@ export const chatService = {
 
   async getConversationDetail(id: string): Promise<ConversationDetail> {
     const response = await fetch(`${API_BASE_URL}/conversation/${id}`, {
-      headers: { 'X-Client-ID': CLIENT_ID },
+      headers: { 'X-Client-ID': getClientId() },
     });
     const result = await response.json();
     return result.data;
@@ -51,7 +59,7 @@ export const chatService = {
   async deleteConversation(id: string) {
     await fetch(`${API_BASE_URL}/conversation/${id}`, {
       method: 'DELETE',
-      headers: { 'X-Client-ID': CLIENT_ID },
+      headers: { 'X-Client-ID': getClientId() },
     });
   },
 
@@ -59,7 +67,7 @@ export const chatService = {
     const response = await fetch(`${API_BASE_URL}/conversation/${id}/title`, {
       method: 'PATCH',
       headers: { 
-        'X-Client-ID': CLIENT_ID,
+        'X-Client-ID': getClientId(),
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ title }),
@@ -71,7 +79,7 @@ export const chatService = {
     const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, {
       method: 'POST',
       headers: { 
-        'X-Client-ID': CLIENT_ID,
+        'X-Client-ID': getClientId(),
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ content }),
