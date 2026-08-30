@@ -1,38 +1,72 @@
-import google.generativeai as genai
-import json
+import logging
+
+from google import genai
+from sentence_transformers import SentenceTransformer
 from app.config.settings import settings
+from qdrant_client import QdrantClient
+
+logger = logging.getLogger(__name__)
 
 class LLMService:
     def __init__(self):
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        logger.info("Initializing Gemini API with google-genai...")
+        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        self.gemini_model = settings.GEMINI_MODEL
+        logger.info(f"Gemini model '{self.gemini_model}' ready.")
 
-    async def decide_retrieval_method(self, question: str) -> dict:
-        prompt = f"""
-        Analyze the following question and decide if it needs 'exact' retrieval (specific surah/verse numbers) or 'semantic' retrieval (conceptual questions).
-        
-        If 'exact', provide the surah_number and verse_number if possible.
-        
-        Return a JSON object with:
-        - "method": "exact" or "semantic"
-        - "surah_number": int or null
-        - "verse_number": int or null
+        logger.info(f"Loading embedding model from {settings.MODEL_NAME_OR_PATH}...")
+        self.embedding_model = SentenceTransformer(
+            settings.MODEL_NAME_OR_PATH, 
+            device=settings.DEVICE,
+            model_kwargs={
+                "torch_dtype": "float16"
+            }
+        )
+        logger.info("Embedding model loaded successfully.")
 
-        Question: {question}
-        """
-        response = self.model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-        return json.loads(response.text)
+        logger.info("Initializing Qdrant client...")
+        self.qdrant = QdrantClient(url=settings.QDRANT_HOST)
+        self.collection_name = settings.QDRANT_COLLECTION
+        logger.info("Qdrant client initialized successfully.")
 
-    async def generate_answer(self, question: str, context_text: str) -> str:
-        prompt = f"""
-        Answer the following question based on the provided Quranic context.
-        
-        Context:
-        {context_text}
-        
-        Question: {question}
-        
-        Answer:
-        """
-        response = self.model.generate_content(prompt)
+
+    async def llm_call(self, query: str, system_instruction: str) -> str:
+        response = self.client.models.generate_content(
+            model=self.gemini_model,
+            contents=query,
+            config={
+                'system_instruction': system_instruction,
+                'temperature': 1,
+                'max_output_tokens': 6536,
+                'top_p': 0.95,
+                'response_mime_type': 'application/json',
+            }
+        )
         return response.text
+
+    async def llm_stream(self, query: str, system_instruction: str):
+        response = self.client.models.generate_content_stream(
+            model=self.gemini_model,
+            contents=query,
+            config={
+                'system_instruction': system_instruction,
+                'temperature': 1,
+                'max_output_tokens': 6536,
+                'top_p': 0.95,
+            }
+        )
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
+
+
+    async def vector_search(self, query: str, limit: int = 5) -> list[dict]:
+        vector = self.embedding_model.encode(query).tolist()
+        
+        results = self.qdrant.query_points(
+            collection_name=self.collection_name,
+            query=vector,
+            limit=limit,
+            with_payload=True,
+        )
+        return [point.payload for point in results.points]
