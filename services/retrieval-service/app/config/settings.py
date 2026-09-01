@@ -13,4 +13,6 @@ class Settings(BaseSettings):
     MODEL_NAME_OR_PATH: str = "models/BGE-M3"
     DEVICE: str = "cpu"
 
+    QDRANT_TIMEOUT: int = 30
+
 settings = Settings()
