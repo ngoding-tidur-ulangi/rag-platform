@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_CHAT_SERVICE_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const getClientId = (): string => {
   let id = localStorage.getItem('client-id');
