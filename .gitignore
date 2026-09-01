@@ -87,3 +87,5 @@ Thumbs.db
 node_modules/
 dist/
 *.tsbuildinfo
+
+models/
