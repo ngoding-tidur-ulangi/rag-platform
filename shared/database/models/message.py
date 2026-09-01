@@ -1,10 +1,15 @@
 import enum
 from datetime import datetime
 import uuid
+from typing import List, TYPE_CHECKING
 from sqlalchemy import ForeignKey, func, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from models.base import Base
+from shared.database.models.base import Base
+
+if TYPE_CHECKING:
+    from shared.database.models.conversation import Conversation
+    from shared.database.models.knowledge import Knowledge
 
 class MessageRole(str, enum.Enum):
     SYSTEM = "SYSTEM"
@@ -36,3 +41,9 @@ class Message(Base):
     )
 
     conversation: Mapped["Conversation"] = relationship("Conversation", back_populates="messages")
+    knowledge_contexts: Mapped[List["Knowledge"]] = relationship(
+        "Knowledge", 
+        back_populates="message",
+        cascade="all, delete-orphan"
+    )
+

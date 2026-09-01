@@ -4,17 +4,19 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql
     ports:
       - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
   database-migration:
     build: 
-      context: ./shared/database
+      context: .
+      dockerfile: shared/database/Dockerfile
     environment:
       DATABASE_URL: ${DATABASE_URL}
     volumes:
-      - ./shared/database/migrations:/app/migrations
+      - ./shared/database/migrations:/app/shared/database/migrations
     depends_on:
       - database
 
@@ -24,13 +26,55 @@ services:
       dockerfile: services/chat-service/Dockerfile
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      RETRIEVAL_SERVICE_HOST: ${RETRIEVAL_SERVICE_HOST}
+      ENABLE_GOOGLE_AUTH: ${ENABLE_GOOGLE_AUTH}
     ports:
       - "8000:8000"
     volumes:
       - ./services/chat-service:/app/services/chat-service
       - ./shared/database:/app/shared/database
+      - ./shared/common:/app/shared/common
     depends_on:
       - database
+      - redis
+
+  database-vector:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  retrieval-service:
+    build:
+      context: .
+      dockerfile: services/retrieval-service/Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      MODEL_NAME_OR_PATH: ${MODEL_NAME_OR_PATH}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL}
+      QDRANT_HOST: ${QDRANT_HOST}
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION}
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./services/retrieval-service:/app/services/retrieval-service
+      - ./shared/database:/app/shared/database
+      - ./shared/common:/app/shared/common
+    depends_on:
+      - database
+      - database-vector
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
 
 volumes:
   postgres_data:
+  redis_data:
+  qdrant_data:
+
