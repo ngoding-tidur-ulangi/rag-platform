@@ -58,6 +58,7 @@ services:
       GEMINI_MODEL: ${GEMINI_MODEL}
       QDRANT_HOST: ${QDRANT_HOST}
       QDRANT_COLLECTION: ${QDRANT_COLLECTION}
+      QDRANT_TIMEOUT: ${QDRANT_TIMEOUT}
     ports:
       - "8001:8000"
     volumes:

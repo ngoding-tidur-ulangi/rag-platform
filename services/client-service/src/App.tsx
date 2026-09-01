@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Textarea } from "./components/ui/textarea"
 import { ScrollArea } from "./components/ui/scroll-area"
 import { ArrowUp, LoaderCircle } from "lucide-react"
@@ -14,7 +14,6 @@ function App() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [history, setHistory] = useState<{ messager: string, message: string, resources: any[] }[]>([])
   const [message, setMessage] = useState("")
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { loadConversations() }, [])
   useEffect(() => {
