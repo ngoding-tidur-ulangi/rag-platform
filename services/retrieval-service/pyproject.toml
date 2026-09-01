@@ -1,0 +1,25 @@
+[project]
+name = "retrieval-service"
+version = "0.1.0"
+description = "Retrieval Service for RAG Platform"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn>=0.30.0",
+    "sqlalchemy>=2.0.30",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "psycopg2-binary>=2.9.9",
+    "asyncpg>=0.29.0",
+    "sentence-transformers>=6.0.0",
+    "qdrant-client>=1.19.0",
+    "google-genai>=2.20.0",
+    "torch>=2.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]

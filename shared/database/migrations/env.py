@@ -14,7 +14,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from models.base import Base
+from shared.database.models.base import Base
 target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
@@ -32,6 +32,8 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     url = os.getenv("DATABASE_URL")
+    if url and "asyncpg" in url:
+        url = url.replace("postgresql+asyncpg://", "postgresql://")
     
     if url:
         connectable = create_engine(url, poolclass=pool.NullPool)

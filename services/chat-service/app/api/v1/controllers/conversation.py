@@ -13,7 +13,7 @@ from shared.common.schemas import DefaultResponse
 
 router = APIRouter()
 
-@router.get("conversation", response_model=DefaultResponse[list[ConversationResponse]])
+@router.get("/conversation", response_model=DefaultResponse[list[ConversationResponse]])
 async def get_conversations(
     current_client: Client = Depends(get_current_client),
     db: AsyncSession = Depends(get_db),
@@ -21,9 +21,9 @@ async def get_conversations(
 ):
     service = ConversationService(db, redis_client)
     res = await service.get_conversation_list(current_client.id)
-    return DefaultResponse(data=res)
+    return DefaultResponse.success(data=res)
 
-@router.get("conversation/{conversation_id}", response_model=DefaultResponse[dict])
+@router.get("/conversation/{conversation_id}", response_model=DefaultResponse[dict])
 async def get_conversation_detail(
     conversation_id: uuid.UUID,
     current_client: Client = Depends(get_current_client),
@@ -32,9 +32,9 @@ async def get_conversation_detail(
 ):
     service = ConversationService(db, redis_client)
     res = await service.get_conversation_detail(conversation_id, current_client.id)
-    return DefaultResponse(data=res)
+    return DefaultResponse.success(data=res)
 
-@router.post("conversation", response_model=DefaultResponse[ConversationResponse])
+@router.post("/conversation", response_model=DefaultResponse[ConversationResponse])
 async def create_conversation(
     current_client: Client = Depends(get_current_client),
     db: AsyncSession = Depends(get_db),
@@ -42,9 +42,9 @@ async def create_conversation(
 ):
     service = ConversationService(db, redis_client)
     res = await service.create_conversation(current_client.id)
-    return DefaultResponse(data=res)
+    return DefaultResponse.success(data=res)
 
-@router.patch("conversation/{conversation_id}/title", response_model=DefaultResponse[ConversationResponse])
+@router.patch("/conversation/{conversation_id}/title", response_model=DefaultResponse[ConversationResponse])
 async def update_conversation_title(
     conversation_id: uuid.UUID,
     data: ConversationUpdateTitle,
@@ -54,9 +54,9 @@ async def update_conversation_title(
 ):
     service = ConversationService(db, redis_client)
     res = await service.update_conversation_title(conversation_id, current_client.id, data.title)
-    return DefaultResponse(data=res)
+    return DefaultResponse.success(data=res)
 
-@router.delete("conversation/{conversation_id}")
+@router.delete("/conversation/{conversation_id}")
 async def delete_conversation(
     conversation_id: uuid.UUID,
     current_client: Client = Depends(get_current_client),
@@ -65,4 +65,4 @@ async def delete_conversation(
 ):
     service = ConversationService(db, redis_client)
     await service.delete_conversation(conversation_id, current_client.id)
-    return DefaultResponse(data=None)
+    return DefaultResponse.success(data=None)

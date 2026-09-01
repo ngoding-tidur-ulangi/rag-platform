@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.database.models.message import Message
 
@@ -11,10 +12,11 @@ class MessageRepository:
         query = (
             select(Message)
             .where(Message.conversation_id == conversation_id)
+            .options(selectinload(Message.knowledge_contexts))
             .order_by(Message.created_at.asc())
         )
         result = await self.session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def create(self, message: Message) -> Message:
         self.session.add(message)
