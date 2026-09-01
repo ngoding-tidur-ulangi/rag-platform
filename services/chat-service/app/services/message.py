@@ -9,6 +9,7 @@ from app.repositories.message import MessageRepository
 from app.repositories.conversation import ConversationRepository
 from shared.database.models.message import Message, MessageRole
 from app.config.settings import settings
+from app.core.auth import get_google_auth_headers
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ class MessageService:
         await self.create_message(conversation_id, content, role="USER")
 
         # 2. Call retrieval-service
+        headers = get_google_auth_headers()
         async with httpx.AsyncClient(timeout=60.0) as client:
             async with client.stream(
                 "POST",
@@ -55,7 +57,8 @@ class MessageService:
                 json={
                     "question": content,
                     "conversation_id": str(conversation_id)
-                }
+                },
+                headers=headers
             ) as response:
                 if response.status_code != 200:
                     error_detail = await response.aread()

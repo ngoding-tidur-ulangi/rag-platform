@@ -28,6 +28,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
       RETRIEVAL_SERVICE_HOST: ${RETRIEVAL_SERVICE_HOST}
+      ENABLE_GOOGLE_AUTH: ${ENABLE_GOOGLE_AUTH}
     ports:
       - "8000:8000"
     volumes:

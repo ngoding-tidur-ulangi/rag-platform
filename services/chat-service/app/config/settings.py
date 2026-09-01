@@ -8,5 +8,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     RETRIEVAL_SERVICE_HOST: str = "http://localhost:8000"
+    
+    ENABLE_GOOGLE_AUTH: bool = False
 
 settings = Settings()
