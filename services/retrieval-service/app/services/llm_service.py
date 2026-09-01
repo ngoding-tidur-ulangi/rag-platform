@@ -25,7 +25,7 @@ class LLMService:
         logger.info("Embedding model loaded successfully.")
 
         logger.info("Initializing Qdrant client...")
-        self.qdrant = QdrantClient(url=settings.QDRANT_HOST)
+        self.qdrant = QdrantClient(url=settings.QDRANT_HOST, timeout=settings.QDRANT_TIMEOUT)
         self.collection_name = settings.QDRANT_COLLECTION
         logger.info("Qdrant client initialized successfully.")
 
